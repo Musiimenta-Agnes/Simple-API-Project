@@ -1,5 +1,5 @@
 from app.models.sister_model import Sister
-from app.status_codes import HTTP_200_OK,HTTP_400_BAD_REQUEST
+from app.status_codes import HTTP_200_OK,HTTP_400_BAD_REQUEST,HTTP_409_CONFLICT
 from flask import Blueprint,request,jsonify
 import validators
 from flask_jwt_extended import jwt_required
@@ -25,21 +25,21 @@ def register_sister():
     #Validating the credentials
 
     if not first_name or not last_name or not contact or not email or not password or not address:
-        return jsonify({'error':'All fields are required!'})
+        return jsonify({'error':'All fields are required!'}),HTTP_400_BAD_REQUEST
     
     if len(password) < 5:
-        return jsonify({'error':'Password is too short!'})
+        return jsonify({'error':'Password is too short!'}),HTTP_400_BAD_REQUEST
     
     if not validators.email(email):
-        return jsonify({'error':'Invalid email!'})
+        return jsonify({'error':'Invalid email!'}),HTTP_400_BAD_REQUEST
     
     # Make queries for more auhtentication
 
     if Sister.query.filter_by(email=email).first() is not None:
-        return jsonify({'error':'Email already in use!'})
+        return jsonify({'error':'Email already in use!'}),HTTP_409_CONFLICT
     
     if Sister.query.filter_by(contact=contact).first() is not None:
-        return jsonify({'error':'Email already in use!'})
+        return jsonify({'error':'Email already in use!'}),HTTP_409_CONFLICT
     
 
     # Try hashing the password for more security
