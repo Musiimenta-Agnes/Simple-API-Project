@@ -1,5 +1,7 @@
 from flask import Flask
 from app.extensions import db,migrate
+from app.controllers.brother.brother_controller import bro
+from app.controllers.sister.sister_controller import sister
 
 
 
@@ -17,8 +19,11 @@ def create_app():
     from app.models.sister_model import Sister
 
 
+    #Register blue prints
+    app.register_blueprint(bro)
+    app.register_blueprint(sister)
 
-  
+
 
     @app.route('/')
     def index():
