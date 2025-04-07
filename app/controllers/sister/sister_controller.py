@@ -1,5 +1,5 @@
 from app.models.sister_model import Sister
-from app.status_codes import HTTP_200_OK,HTTP_400_BAD_REQUEST,HTTP_409_CONFLICT
+from app.status_codes import HTTP_200_OK,HTTP_400_BAD_REQUEST,HTTP_409_CONFLICT,HTTP_500_INTERNAL_SERVER_ERROR
 from flask import Blueprint,request,jsonify
 import validators
 from flask_jwt_extended import jwt_required
@@ -81,6 +81,38 @@ def register_sister():
     except Exception as e:
         return jsonify({
             'error': str(e)
-            })
+            }),HTTP_500_INTERNAL_SERVER_ERROR
     
 
+
+
+# Getting sister by id
+
+@sister.get('/sister/<int:id>/')
+def get_sister_by_id(id):
+    
+    
+    try:
+
+        sister = Sister.query.filter_by(id=id).first()
+
+        return jsonify({
+            'message': 'Sister' +' ' + sister.get_full_name() + ' ' + 'has been successfully retrieved.',
+
+
+            'sister': {
+                    'first_name':sister.first_name,
+                'last_name':sister.last_name,
+                'email':sister.email,
+                'contact':sister.contact,
+                'address':sister.address,
+                'age':sister.age,
+                'image':sister.image
+
+            }
+        })
+
+    except Exception as e:
+        return jsonify({
+            'error':str(e)
+        }),HTTP_500_INTERNAL_SERVER_ERROR

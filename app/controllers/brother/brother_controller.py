@@ -6,9 +6,10 @@ from app.extensions import db,bcrypt
 from flask_jwt_extended import jwt_required
 
 
-# Register blue print
+# Define the route
 
 bro = Blueprint('bro',__name__,url_prefix='/api/v1/bro')
+
 @bro.route('/register', methods = ['POST'])
 def register_brother():
     data = request.json
@@ -87,4 +88,39 @@ def register_brother():
 
 
 
-#Login Brother
+#Get brother by id
+
+@bro.get('/brother/<int:id>')
+def get_bro_by_id(id):
+
+    try:
+
+        brother = Brother.query.filter_by(id=id).first()
+
+        return jsonify({
+            'message':'Brother' +' ' + brother.get_full_name() + ' ' + 'has been successfully retrieved.',
+
+
+            'brother': {
+                'id':brother.id,
+                'first_name':brother.first_name,
+                'last_name':brother.last_name,
+                'email':brother.email,
+                'full_name':brother.get_full_name(),
+                'contact':brother.contact,
+                'address':brother.address,
+                'age':brother.age,
+                'image':brother.image
+
+            }
+        })
+
+
+
+
+    except Exception as e:
+        return jsonify({
+            'error': str(e)
+        }),HTTP_500_INTERNAL_SERVER_ERROR
+
+    
