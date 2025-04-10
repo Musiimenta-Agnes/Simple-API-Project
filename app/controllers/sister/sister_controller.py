@@ -1,5 +1,5 @@
 from app.models.sister_model import Sister
-from app.status_codes import HTTP_200_OK,HTTP_400_BAD_REQUEST,HTTP_409_CONFLICT,HTTP_500_INTERNAL_SERVER_ERROR
+from app.status_codes import HTTP_200_OK,HTTP_400_BAD_REQUEST,HTTP_409_CONFLICT,HTTP_500_INTERNAL_SERVER_ERROR,HTTP_404_NOT_FOUND
 from flask import Blueprint,request,jsonify
 import validators
 from flask_jwt_extended import jwt_required
@@ -88,7 +88,7 @@ def register_sister():
 
 # Getting sister by id
 
-@sister.get('/sister/<int:id>/')
+@sister.get('/get/<int:id>/')
 def get_sister_by_id(id):
     
     
@@ -101,7 +101,7 @@ def get_sister_by_id(id):
 
 
             'sister': {
-                    'first_name':sister.first_name,
+                'first_name':sister.first_name,
                 'last_name':sister.last_name,
                 'email':sister.email,
                 'contact':sister.contact,
@@ -116,3 +116,72 @@ def get_sister_by_id(id):
         return jsonify({
             'error':str(e)
         }),HTTP_500_INTERNAL_SERVER_ERROR
+    
+
+
+
+# Getting all sisters
+
+@sister.route('/get', methods = ['GET'])
+def get_all_sisters():
+    try:
+
+        all_sisters = Sister.query.all()
+        sisters_data = []
+
+        for sister in all_sisters:
+            sister_info = {
+                'first_name':sister.first_name,
+                'last_name':sister.last_name,
+                'email':sister.email,
+                'contact':sister.contact,
+                'address':sister.address,
+                'age':sister.age,
+                'image':sister.image
+            }
+            sisters_data.append(sister_info)
+
+# Ensure this return is in the same line with for, or else you will get an error in postman of returning only one sister.
+        return jsonify({
+                'message': 'All sisters have been successifully retrieved',
+                'total': len(sisters_data),
+                'Sisters': sisters_data
+            })
+       
+
+
+
+
+    except Exception as e:
+        return jsonify({
+            'error':str(e)
+        }),HTTP_500_INTERNAL_SERVER_ERROR
+
+
+
+
+
+# Deleting sister
+
+@sister.route('/delete/<int:id>', methods = ['DELETE'])
+def delete_sister(id):
+
+    try:
+
+        sister = Sister.query.filter_by(id = id).first()
+
+        if not sister:
+            return jsonify({'message': 'Sister with this id does not exist!'}),HTTP_404_NOT_FOUND
+        else:
+             db.session.delete(sister)
+             db.session.commit()
+
+             return jsonify({'message': 'Sister has ben successifully deleted'}),HTTP_500_INTERNAL_SERVER_ERROR
+        
+       
+
+    except Exception as e:
+        return jsonify({
+            'error':str(e)
+        },HTTP_500_INTERNAL_SERVER_ERROR)
+

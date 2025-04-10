@@ -1,6 +1,6 @@
 from flask import Blueprint, request,jsonify
 from app.models.brothers_model import Brother
-from app.status_codes import HTTP_400_BAD_REQUEST,HTTP_409_CONFLICT,HTTP_500_INTERNAL_SERVER_ERROR,HTTP_201_CREATED,HTTP_200_OK
+from app.status_codes import HTTP_400_BAD_REQUEST,HTTP_409_CONFLICT,HTTP_500_INTERNAL_SERVER_ERROR,HTTP_201_CREATED,HTTP_200_OK,HTTP_404_NOT_FOUND
 import validators
 from app.extensions import db,bcrypt
 from flask_jwt_extended import jwt_required
@@ -90,12 +90,16 @@ def register_brother():
 
 #Get brother by id
 
-@bro.get('/brother/<int:id>')
+@bro.get('/get/<int:id>')
 def get_bro_by_id(id):
 
     try:
 
-        brother = Brother.query.filter_by(id=id).first()
+
+        brother = Brother.query.filter_by(id=id).first() #  This is to filter through the model and check whether the person with that particular id exists.
+
+      
+    #Return the brothers information incase they exist.
 
         return jsonify({
             'message':'Brother' +' ' + brother.get_full_name() + ' ' + 'has been successfully retrieved.',
@@ -124,3 +128,79 @@ def get_bro_by_id(id):
         }),HTTP_500_INTERNAL_SERVER_ERROR
 
     
+
+
+# Get all brothers.
+
+@bro.route('/get', methods = ['GET'])
+def get_all_brothers():
+
+    all_brothers = Brother.query.all()
+    brothers_data = []
+
+    for brother in all_brothers:
+        brothers_information = {
+                'id':brother.id,
+                'first_name':brother.first_name,
+                'last_name':brother.last_name,
+                'email':brother.email,
+                'full_name':brother.get_full_name(),
+                'contact':brother.contact,
+                'address':brother.address,
+                'age':brother.age,
+                'image':brother.image
+            }
+
+
+        brothers_data.append(brothers_information)
+# Ensure this return is in the same line with for, or else you will get an error in postman of returning only one brother.
+    return jsonify({
+            'message':'All brothers have been successifully retrieved',
+            'total': len(brothers_data),
+            'brothers': brothers_data
+        }),HTTP_200_OK
+    
+
+    
+
+
+
+
+# Deleting a brother
+@bro.route('/delete/<int:id>', methods = ['DELETE'])
+def delete_brother(id):
+
+    try:
+
+        brother = Brother.query.filter_by(id = id).first()
+
+        if not brother:
+            return jsonify({'message':'Brother with this id does not exist!'}),HTTP_404_NOT_FOUND
+        else:
+            db.session.delete(brother)
+            db.session.commit()
+
+        return jsonify({'message': 'Brother has been successifully deleted'}),HTTP_200_OK
+    
+
+    except Exception as e:
+        return jsonify({
+            'error':str(e)
+        }), HTTP_500_INTERNAL_SERVER_ERROR
+    
+
+
+
+    
+
+
+
+    
+
+
+    
+
+
+
+
+
