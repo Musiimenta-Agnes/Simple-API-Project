@@ -185,3 +185,25 @@ def delete_sister(id):
             'error':str(e)
         },HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+
+# deleting a sister by id
+@sister.route('/delete/ <int:id>', methods = ['DELETE'])
+def delete_sister(id):
+    try:
+        sister = Sister.query.filter_by(id = id).first()
+        if not sister:
+            return jsonify({'error': 'Sister with this id not found!'}),HTTP_404_NOT_FOUND
+        else:
+
+            db.session.delete(sister)
+            db.session.commit()
+
+        return jsonify ({'message': 'Sister has been successfully deleted'}),HTTP_200_OK
+
+
+
+    except Exception as e:
+        return jsonify({
+            'error':str(e)
+        }),HTTP_500_INTERNAL_SERVER_ERROR
